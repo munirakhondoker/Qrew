@@ -19,6 +19,13 @@
             <span class="brand-badge" id="sidebar-brand-badge">Platform Level</span>
           </div>
         </div>
+        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" title="Collapse sidebar (Ctrl+B)" aria-label="Toggle sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" x2="20" y1="6" y2="6"/>
+            <line x1="4" x2="20" y1="12" y2="12"/>
+            <line x1="4" x2="20" y1="18" y2="18"/>
+          </svg>
+        </button>
       </div>
 
       <!-- Context Selector (Tenant or Office Switcher) -->
@@ -53,7 +60,7 @@
         <div class="topbar-center" id="topbar-center">
           <div class="topbar-domain-badge">
             <span class="topbar-domain-dot"></span>
-            <span id="topbar-domain-text">App.Qrew.com/Admin</span>
+            <span id="topbar-domain-text">app.qrew.com/admin</span>
           </div>
         </div>
 
@@ -81,7 +88,7 @@
               <div class="user-avatar" id="topbar-user-avatar">S</div>
               <div class="user-meta">
                 <span class="user-name" id="topbar-user-name">Sakib</span>
-                <span class="user-role-tag">Platform Owner</span>
+                <span class="user-role-tag" id="topbar-user-role">Platform Admin</span>
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-text-muted);"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
@@ -91,6 +98,7 @@
               <div class="dropdown-header" id="dropdown-header-btn" style="cursor:pointer;" title="Click to edit profile">
                 <div class="dropdown-user-title" id="dropdown-user-title">Sakib</div>
                 <div class="dropdown-user-email" id="dropdown-user-email">sakib@qrew.io</div>
+                <div class="dropdown-user-role" id="dropdown-user-role" style="font-size:11px;color:var(--panel-accent, var(--color-accent));font-weight:600;margin-top:2px;">Platform Admin</div>
               </div>
               <div class="dropdown-item" id="action-my-profile">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>

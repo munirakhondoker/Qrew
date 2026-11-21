@@ -188,6 +188,62 @@ document.addEventListener('DOMContentLoaded', () => {
     return { workspace, view, path: pathPart, params };
   };
 
+  // ==========================================
+  // Six Dashboard Color Identity System
+  // Centralized theme configuration tokens
+  // ==========================================
+  const PANEL_THEMES = {
+    'platform': {
+      name: 'Platform Admin Panel',
+      primaryAccent: '#9E5334',
+      lightAccent: '#F5EAE4',
+      hoverAccent: '#EBD8CD'
+    },
+    'super-admin': {
+      name: 'Super Admin',
+      primaryAccent: '#713B2B',
+      lightAccent: '#F2E7E1',
+      hoverAccent: '#E3CEBF'
+    },
+    'tenant': {
+      name: 'Tenant Workspace',
+      primaryAccent: '#B77942',
+      lightAccent: '#F8EFE3',
+      hoverAccent: '#EEDCC8'
+    },
+    'office': {
+      name: 'Office Workspace',
+      primaryAccent: '#65734B',
+      lightAccent: '#EEF0E5',
+      hoverAccent: '#D8DDC7'
+    },
+    'office-admin': {
+      name: 'Office Admin Panel',
+      primaryAccent: '#A34F43',
+      lightAccent: '#F6E9E6',
+      hoverAccent: '#EBCBCA'
+    },
+    'office-config': {
+      name: 'Office Config',
+      primaryAccent: '#78618A',
+      lightAccent: '#F0EBF4',
+      hoverAccent: '#DFD3EB'
+    }
+  };
+
+  const applyPanelTheme = (workspace) => {
+    const theme = PANEL_THEMES[workspace] || PANEL_THEMES['platform'];
+    document.body.setAttribute('data-workspace', workspace);
+    // Remove previous ws-* classes and add current one
+    document.body.classList.remove('ws-platform', 'ws-super-admin', 'ws-tenant', 'ws-office', 'ws-office-admin', 'ws-office-config');
+    document.body.classList.add(`ws-${workspace}`);
+
+    // Centralized CSS variable application for real-time reactivity without reload
+    document.documentElement.style.setProperty('--panel-accent', theme.primaryAccent);
+    document.documentElement.style.setProperty('--panel-accent-light', theme.lightAccent);
+    document.documentElement.style.setProperty('--panel-accent-hover', theme.hoverAccent);
+  };
+
   const navigateTo = (hash) => {
     window.location.hash = hash.startsWith('#') ? hash : '#' + hash;
   };
@@ -198,6 +254,9 @@ document.addEventListener('DOMContentLoaded', () => {
     AppState.currentView = route.view;
     AppState.currentRoute = route.path;
     AppState.routeParams = route.params;
+
+    // Apply dashboard-specific color identity
+    applyPanelTheme(route.workspace);
 
     if (route.workspace === 'landing' || route.workspace === 'tenant-landing') {
       document.body.classList.add('landing-mode');
@@ -250,6 +309,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update Topbar Domain Badge (Platform vs. Tenant Panel)
     updateTopbarDomainBadge();
 
+    // Synchronize Topbar User Profile dynamically based on active workspace/panel
+    syncHeaderUserProfile();
+
     // Re-render Dynamic Navigation Sidebar
     renderSidebar();
 
@@ -289,21 +351,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const brandWrapperEl = document.getElementById('brand-wrapper');
     if (ws === 'platform') {
       DOM.sidebarBrandLogo.textContent = 'Q';
-      DOM.sidebarBrandLogo.style.backgroundColor = 'var(--color-accent)';
+      DOM.sidebarBrandLogo.style.backgroundColor = 'var(--panel-accent, var(--color-accent))';
       DOM.sidebarBrandName.textContent = 'Qrew';
       DOM.sidebarBrandBadge.textContent = 'Platform Admin';
       DOM.sidebarContextPicker.style.display = 'none';
       if (brandWrapperEl) brandWrapperEl.title = 'Go to Platform Landing Page (qrew.com)';
     } else if (ws === 'super-admin') {
       DOM.sidebarBrandLogo.textContent = 'Q';
-      DOM.sidebarBrandLogo.style.backgroundColor = 'var(--color-accent)';
+      DOM.sidebarBrandLogo.style.backgroundColor = 'var(--panel-accent, var(--color-accent))';
       DOM.sidebarBrandName.textContent = 'Qrew';
       DOM.sidebarBrandBadge.textContent = 'Super Admin';
       DOM.sidebarContextPicker.style.display = 'none';
       if (brandWrapperEl) brandWrapperEl.title = 'Go to Platform Landing Page (qrew.com)';
     } else if (ws === 'office-config') {
       DOM.sidebarBrandLogo.textContent = '⚙';
-      DOM.sidebarBrandLogo.style.backgroundColor = 'var(--color-accent)';
+      DOM.sidebarBrandLogo.style.backgroundColor = 'var(--panel-accent, var(--color-accent))';
       DOM.sidebarBrandName.textContent = office ? office.name : 'Office Config';
       DOM.sidebarBrandBadge.textContent = 'Configuration Centre';
       if (brandWrapperEl) brandWrapperEl.title = 'Go to Platform Landing Page (qrew.com)';
@@ -352,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (ws === 'tenant') {
       const initial = tenant ? tenant.name.charAt(0).toUpperCase() : 'T';
       DOM.sidebarBrandLogo.textContent = initial;
-      DOM.sidebarBrandLogo.style.backgroundColor = 'var(--color-warning)';
+      DOM.sidebarBrandLogo.style.backgroundColor = 'var(--panel-accent, var(--color-warning))';
       DOM.sidebarBrandName.textContent = tenant ? tenant.name : 'Tenant';
       DOM.sidebarBrandBadge.textContent = 'Tenant Workspace';
       if (brandWrapperEl) brandWrapperEl.title = `Go to ${tenant ? tenant.name : 'Tenant'} Landing Page (${getTenantDomain(AppState.currentTenantId)})`;
@@ -373,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (ws === 'office') {
       const initial = tenant ? tenant.name.charAt(0).toUpperCase() : 'S';
       DOM.sidebarBrandLogo.textContent = initial;
-      DOM.sidebarBrandLogo.style.backgroundColor = 'var(--color-info)';
+      DOM.sidebarBrandLogo.style.backgroundColor = 'var(--panel-accent, var(--color-info))';
       DOM.sidebarBrandName.textContent = tenant ? tenant.name : 'SST';
       DOM.sidebarBrandBadge.textContent = office ? office.name : 'Chittagong Port Office';
       if (brandWrapperEl) brandWrapperEl.title = `Go to ${tenant ? tenant.name : 'Tenant'} Landing Page (${getTenantDomain(AppState.currentTenantId)})`;
@@ -392,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (ws === 'office-admin') {
       const initial = tenant ? tenant.name.charAt(0).toUpperCase() : 'S';
       DOM.sidebarBrandLogo.textContent = initial;
-      DOM.sidebarBrandLogo.style.backgroundColor = 'var(--color-accent)';
+      DOM.sidebarBrandLogo.style.backgroundColor = 'var(--panel-accent, var(--color-accent))';
       DOM.sidebarBrandName.textContent = tenant ? tenant.name : 'SST';
       DOM.sidebarBrandBadge.textContent = office ? office.name : 'Chittagong Port Office';
       if (brandWrapperEl) brandWrapperEl.title = `Go to ${tenant ? tenant.name : 'Tenant'} Landing Page (${getTenantDomain(AppState.currentTenantId)})`;
@@ -575,6 +637,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="nav-label">Settings</span>
           </a>
         </div>
+        <div class="nav-section" style="margin-top:16px;">
+          <div class="nav-section-title">Platform</div>
+          <a class="nav-item" href="#landing" style="color:var(--panel-accent, var(--color-accent));font-weight:600;">
+            <span class="nav-icon">${QrewUI.getIcon('chevronLeft')}</span>
+            <span class="nav-label">&larr; Qrew Landing Page</span>
+          </a>
+        </div>
       `;
     } else if (ws === 'office') {
       const tenantId = tenant ? tenant.id : AppState.currentTenantId;
@@ -646,6 +715,17 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
     }
+
+    // Automatically equip every navigation item with tooltips & accessibility labels
+    DOM.sidebarNav.querySelectorAll('.nav-item').forEach(item => {
+      const labelEl = item.querySelector('.nav-label');
+      if (labelEl) {
+        const text = labelEl.textContent.trim().replace(/^[←→\s]+|[←→\s]+$/g, '');
+        item.setAttribute('title', text);
+        item.setAttribute('data-tooltip', text);
+        item.setAttribute('aria-label', text);
+      }
+    });
   };
 
   // Synchronize Topbar Domain Badge (Platform vs. Office Config vs. Tenant vs. Office Workspace)
@@ -655,46 +735,160 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!domainTextEl) return;
 
     if (AppState.activeWorkspace === 'platform' || AppState.activeWorkspace === 'super-admin') {
-      domainTextEl.textContent = 'App.Qrew.com/Admin';
-      if (domainDotEl) domainDotEl.style.backgroundColor = 'var(--color-accent)';
+      domainTextEl.textContent = 'app.qrew.com/admin';
+      if (domainDotEl) domainDotEl.style.backgroundColor = 'var(--panel-accent)';
     } else if (AppState.activeWorkspace === 'office-config') {
-      domainTextEl.textContent = 'App.Qrew.com/office config';
-      if (domainDotEl) domainDotEl.style.backgroundColor = 'var(--color-accent)';
+      domainTextEl.textContent = 'app.qrew.com/office config';
+      if (domainDotEl) domainDotEl.style.backgroundColor = 'var(--panel-accent)';
     } else if (AppState.activeWorkspace === 'tenant') {
       const tenant = QrewStore.getTenantById(AppState.currentTenantId) || QrewStore.getTenants()[0];
-      const tenantName = (tenant && tenant.name) ? tenant.name : 'SST';
-      domainTextEl.textContent = `App.${tenantName}.com`;
-      if (domainDotEl) domainDotEl.style.backgroundColor = 'var(--color-warning)';
+      const tenantName = (tenant && tenant.name) ? tenant.name.toLowerCase() : 'sst';
+      domainTextEl.textContent = `app.${tenantName}.com`;
+      if (domainDotEl) domainDotEl.style.backgroundColor = 'var(--panel-accent)';
     } else {
       // Branch Office Workspaces (Facility Hub vs. Office Administration)
       const office = QrewStore.getOfficeById(AppState.currentOfficeId);
       const isMongla = office && (office.id === 'off_mgl_port' || (office.name && office.name.toLowerCase().includes('mongla')));
-      const baseDomain = isMongla ? 'SST.MGL.com' : 'SST.CTG.com';
+      const baseDomain = isMongla ? 'sst.mgl.com' : 'sst.ctg.com';
 
       if (AppState.activeWorkspace === 'office-admin') {
-        domainTextEl.textContent = `${baseDomain}/Admin`;
+        domainTextEl.textContent = `${baseDomain}/admin`;
       } else {
         domainTextEl.textContent = baseDomain;
       }
-      if (domainDotEl) domainDotEl.style.backgroundColor = 'var(--color-info)';
+      if (domainDotEl) domainDotEl.style.backgroundColor = 'var(--panel-accent)';
     }
   };
 
   // Breadcrumbs Updater (removed from topbar per design specification)
   const updateBreadcrumbs = () => {};
 
-  // Synchronize Topbar User Profile
+  // ==========================================
+  // Panel-Scoped User Profile Definition
+  // Dynamically assigns role, persona name, email, and avatar per workspace/panel
+  // ==========================================
+  const getPanelUserInfo = () => {
+    const ws = AppState.activeWorkspace;
+    const tenant = (typeof QrewStore !== 'undefined' && QrewStore.getTenantById)
+      ? (QrewStore.getTenantById(AppState.currentTenantId) || QrewStore.getTenants()[0])
+      : null;
+
+    let overrides = {};
+    try {
+      overrides = JSON.parse(localStorage.getItem('qrew_panel_user_overrides') || '{}');
+    } catch (e) {}
+
+    let defaultInfo;
+    if (ws === 'platform') {
+      defaultInfo = {
+        name: 'Sakib',
+        role: 'Platform Admin',
+        email: 'sakib@qrew.io',
+        avatar: 'S',
+        avatarBg: 'var(--panel-accent)'
+      };
+    } else if (ws === 'super-admin') {
+      defaultInfo = {
+        name: 'Sakib',
+        role: 'Super Admin',
+        email: 'sakib@qrew.io',
+        avatar: 'S',
+        avatarBg: 'var(--panel-accent)'
+      };
+    } else if (ws === 'tenant') {
+      const ownerName = (tenant && tenant.ownerName) ? tenant.ownerName : 'Rafiqul Islam';
+      const ownerEmail = (tenant && tenant.ownerEmail) ? tenant.ownerEmail : 'rafiq@sst.com';
+      defaultInfo = {
+        name: ownerName,
+        role: 'Tenant Admin',
+        email: ownerEmail,
+        avatar: ownerName.charAt(0).toUpperCase(),
+        avatarBg: 'var(--panel-accent)'
+      };
+    } else if (ws === 'office-admin') {
+      defaultInfo = {
+        name: 'Jack Rahman',
+        role: 'Office Admin',
+        email: 'jack@sst.com',
+        avatar: 'J',
+        avatarBg: 'var(--panel-accent)'
+      };
+    } else if (ws === 'office') {
+      defaultInfo = {
+        name: 'Jack Rahman',
+        role: 'Office Manager',
+        email: 'jack@sst.com',
+        avatar: 'J',
+        avatarBg: 'var(--panel-accent)'
+      };
+    } else if (ws === 'office-config') {
+      defaultInfo = {
+        name: 'Jack Rahman',
+        role: 'Office Admin',
+        email: 'jack@sst.com',
+        avatar: 'J',
+        avatarBg: 'var(--panel-accent)'
+      };
+    } else if (ws === 'department') {
+      const dept = (typeof QrewStore !== 'undefined' && QrewStore.getDepartmentById)
+        ? QrewStore.getDepartmentById(AppState.currentDeptId)
+        : null;
+      const leadName = dept ? (dept.leadName || 'Jack Rahman') : 'Jack Rahman';
+      defaultInfo = {
+        name: leadName,
+        role: 'Department Lead',
+        email: 'lead@sst.com',
+        avatar: leadName.charAt(0).toUpperCase(),
+        avatarBg: 'var(--color-accent)'
+      };
+    } else if (ws === 'member') {
+      const member = (typeof QrewStore !== 'undefined' && QrewStore.getUserById)
+        ? QrewStore.getUserById(AppState.currentMemberId)
+        : null;
+      const memName = (member && member.name) ? member.name : 'Nusrat Jahan';
+      const memEmail = (member && member.email) ? member.email : 'nusrat@sst.com';
+      defaultInfo = {
+        name: memName,
+        role: 'Office Staff',
+        email: memEmail,
+        avatar: memName.charAt(0).toUpperCase(),
+        avatarBg: 'var(--color-text-muted)'
+      };
+    } else {
+      defaultInfo = {
+        name: 'Sakib',
+        role: 'Platform Admin',
+        email: 'sakib@qrew.io',
+        avatar: 'S',
+        avatarBg: 'var(--color-dark)'
+      };
+    }
+
+    if (overrides && overrides[ws]) {
+      return { ...defaultInfo, ...overrides[ws] };
+    }
+    return defaultInfo;
+  };
+
+  // Synchronize Topbar User Profile dynamically based on active workspace/panel
   const syncHeaderUserProfile = () => {
-    const user = QrewStore.getCurrentUser();
+    const user = getPanelUserInfo();
     const avatarEl = document.getElementById('topbar-user-avatar');
     const nameEl = document.getElementById('topbar-user-name');
+    const roleEl = document.getElementById('topbar-user-role');
     const titleEl = document.getElementById('dropdown-user-title');
     const emailEl = document.getElementById('dropdown-user-email');
+    const dropdownRoleEl = document.getElementById('dropdown-user-role');
 
-    if (avatarEl) avatarEl.textContent = user.avatar || user.name.charAt(0).toUpperCase();
+    if (avatarEl) {
+      avatarEl.textContent = user.avatar || user.name.charAt(0).toUpperCase();
+      avatarEl.style.backgroundColor = user.avatarBg || 'var(--color-dark)';
+    }
     if (nameEl) nameEl.textContent = user.name;
+    if (roleEl) roleEl.textContent = user.role;
     if (titleEl) titleEl.textContent = user.name;
     if (emailEl) emailEl.textContent = user.email;
+    if (dropdownRoleEl) dropdownRoleEl.textContent = user.role;
   };
 
   // Synchronize Topbar Landing Button (Removed per UI design)
@@ -1098,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <!-- Central Platform Domain -->
             <div class="landing-domain-badge">
               <span class="landing-domain-dot"></span>
-              <span>App.Qrew.com</span>
+              <span>app.qrew.com</span>
             </div>
 
             <!-- Workspace Context Tabs on Main Landing Header -->
@@ -1334,6 +1528,13 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // --- Platform: Tenants ---
+  const platformTenantTreeState = {
+    isRootExpanded: true,
+    expandedTenants: new Set(['ten_sst']),
+    searchTerm: '',
+    statusFilter: 'All'
+  };
+
   const renderPlatformTenants = () => {
     updateBreadcrumbs([
       { label: 'Platform', hash: '#platform/overview' },
@@ -1341,77 +1542,387 @@ document.addEventListener('DOMContentLoaded', () => {
     ]);
 
     const allTenants = QrewStore.getTenants();
-    let currentFilter = 'All';
-    let searchQuery = '';
+    // Default expand all tenants inside root so folder hierarchy is fully visible
+    if (platformTenantTreeState.expandedTenants.size === 0 && allTenants.length > 0) {
+      allTenants.forEach(t => platformTenantTreeState.expandedTenants.add(t.id));
+    }
 
-    const filterAndRenderTable = () => {
-      let filtered = allTenants.filter(t => {
-        const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              t.ownerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              t.id.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = currentFilter === 'All' || t.status === currentFilter;
+    const totalOfficesCount = allTenants.reduce((sum, t) => sum + (QrewStore.getOfficesByTenant(t.id) || []).length, 0);
+    const totalMembersCount = allTenants.reduce((sum, t) => sum + (QrewStore.getTenantMembers(t.id) || []).length, 0);
+
+    const renderTreeNodes = () => {
+      const filter = (platformTenantTreeState.searchTerm || '').toLowerCase().trim();
+      const status = platformTenantTreeState.statusFilter || 'All';
+      const treeListEl = document.getElementById('tenants-tree-list');
+      const statsBadgeEl = document.getElementById('tenants-stats-badge');
+      if (!treeListEl) return;
+
+      let filteredTenants = allTenants.filter(t => {
+        const tenantOffices = QrewStore.getOfficesByTenant(t.id) || [];
+        const matchesSearch = !filter || (
+          t.name.toLowerCase().includes(filter) ||
+          t.id.toLowerCase().includes(filter) ||
+          (t.ownerName && t.ownerName.toLowerCase().includes(filter)) ||
+          tenantOffices.some(o => 
+            o.name.toLowerCase().includes(filter) || 
+            o.id.toLowerCase().includes(filter) || 
+            (o.location && o.location.toLowerCase().includes(filter))
+          )
+        );
+        const matchesStatus = status === 'All' || t.status === status;
         return matchesSearch && matchesStatus;
       });
 
-      const tbody = document.getElementById('tenants-tbody');
-      if (!tbody) return;
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="8">
-              ${QrewUI.emptyState({
-                title: 'No tenants match your search',
-                description: 'Try adjusting your filter or search keywords.'
-              })}
-            </td>
-          </tr>
-        `;
-        return;
+      if (statsBadgeEl) {
+        statsBadgeEl.textContent = `${filteredTenants.length} Tenant${filteredTenants.length === 1 ? '' : 's'} • ${totalOfficesCount} Offices`;
       }
 
-      tbody.innerHTML = filtered.map(t => `
-        <tr>
-          <td>
-            <a href="#tenant/overview?id=${t.id}" class="table-row-link">
-              <strong>${QrewUI.escapeHtml(t.name)}</strong>
-            </a>
-          </td>
-          <td><span class="id-badge">${t.id}</span></td>
-          <td>${QrewUI.escapeHtml(t.ownerName)}</td>
-          <td>${t.officeCount}</td>
-          <td>${t.memberCount}</td>
-          <td>${QrewUI.statusBadge(t.status)}</td>
-          <td>${t.createdAt}</td>
-          <td>
-            <div class="table-actions">
-              <button class="action-icon-btn edit-tenant-btn" data-id="${t.id}" title="Edit Tenant Info">
-                ${QrewUI.getIcon('edit')}
-              </button>
-              <button class="action-icon-btn toggle-tenant-btn" data-id="${t.id}" data-status="${t.status}" title="${t.status === 'Active' ? 'Suspend' : 'Activate'}">
-                ${QrewUI.getIcon('power')}
-              </button>
-              <button class="action-icon-btn danger delete-tenant-btn" data-id="${t.id}" data-name="${QrewUI.escapeHtml(t.name)}" title="Delete Tenant Organization">
-                ${QrewUI.getIcon('trash')}
+      // Auto-expand root and matching tenants if searching
+      if (filter) {
+        platformTenantTreeState.isRootExpanded = true;
+        filteredTenants.forEach(t => platformTenantTreeState.expandedTenants.add(t.id));
+      }
+
+      const isRootExpanded = platformTenantTreeState.isRootExpanded;
+
+      treeListEl.innerHTML = `
+        <div class="tree-root-folder-card">
+          <!-- Level 1: Root Folder (Tenants) -->
+          <div class="tree-tenant-row root-folder-row ${isRootExpanded ? 'expanded' : ''}" id="root-tenants-row" role="button" tabindex="0" aria-expanded="${isRootExpanded ? 'true' : 'false'}" aria-label="Tenants Root Folder">
+            <div class="tree-tenant-left">
+              <span class="tree-chevron" aria-hidden="true">${QrewUI.getIcon('chevronRight')}</span>
+              <span class="tree-folder-icon" style="background-color:var(--panel-accent);color:#fff;" aria-hidden="true">
+                ${isRootExpanded ? QrewUI.getIcon('folderOpen') : QrewUI.getIcon('folderClosed')}
+              </span>
+              <div class="tree-tenant-name-group">
+                <span class="tree-tenant-title">Tenants</span>
+                <span class="tree-id-badge" title="Root Directory">root_directory</span>
+              </div>
+            </div>
+
+            <div class="tree-tenant-meta">
+              <span class="tree-meta-item" title="Total Organizations in Mesh">
+                <span class="tree-meta-icon">${QrewUI.getIcon('layers')}</span>
+                <span class="tree-meta-label">Organizations:</span>
+                <strong style="color:var(--color-text-primary);">${filteredTenants.length}</strong>
+              </span>
+              <span class="tree-meta-divider" aria-hidden="true">•</span>
+              <span class="tree-meta-badge" title="Total Facilities">
+                ${totalOfficesCount} office${totalOfficesCount === 1 ? '' : 's'}
+              </span>
+              <span class="tree-meta-divider" aria-hidden="true">•</span>
+              <span class="tree-meta-item" title="Total Active Members" style="color:var(--color-text-muted);">
+                ${totalMembersCount} member${totalMembersCount === 1 ? '' : 's'}
+              </span>
+              <span class="tree-meta-divider" aria-hidden="true">•</span>
+              <span class="tree-meta-item">
+                ${QrewUI.statusBadge('Active')}
+              </span>
+            </div>
+
+            <div class="tree-actions-wrap" onclick="event.stopPropagation()">
+              <button class="btn btn-secondary btn-sm" id="btn-root-create-tenant" title="Provision New Organization">
+                ${QrewUI.getIcon('plus')} New Tenant
               </button>
             </div>
-          </td>
-        </tr>
-      `).join('');
+          </div>
 
-      tbody.querySelectorAll('.edit-tenant-btn').forEach(btn => {
-        btn.onclick = () => openEditTenantModal(btn.dataset.id);
+          <!-- Level 2: Tenants Under Root -->
+          ${isRootExpanded ? `
+            <div class="tree-branch-container root-branch">
+              ${filteredTenants.length === 0 ? `
+                <div style="padding:20px 24px;background:var(--color-surface-white);border:1px dashed var(--color-border);border-radius:var(--radius-md);text-align:center;">
+                  <span style="color:var(--color-text-muted);font-size:13px;">
+                    ${filter ? `No organizations match "${QrewUI.escapeHtml(filter)}"` : 'No tenant organizations found.'}
+                  </span>
+                </div>
+              ` : filteredTenants.map(t => {
+                const tenantOffices = QrewStore.getOfficesByTenant(t.id) || [];
+                const tenantMembers = QrewStore.getTenantMembers(t.id) || [];
+                const isTenantExpanded = platformTenantTreeState.expandedTenants.has(t.id);
+
+                const filteredOffices = filter
+                  ? tenantOffices.filter(o => 
+                      o.name.toLowerCase().includes(filter) || 
+                      o.id.toLowerCase().includes(filter) || 
+                      (o.location && o.location.toLowerCase().includes(filter))
+                    )
+                  : tenantOffices;
+
+                return `
+                  <div class="tree-subfolder-card" data-tenant-id="${t.id}">
+                    <!-- Tenant Row (e.g. SST) -->
+                    <div class="tree-tenant-row subfolder-row ${isTenantExpanded ? 'expanded' : ''}" data-tenant-id="${t.id}" role="button" tabindex="0" aria-expanded="${isTenantExpanded ? 'true' : 'false'}" aria-label="Tenant Organization ${QrewUI.escapeHtml(t.name)}">
+                      <div class="tree-tenant-left">
+                        <span class="tree-chevron" aria-hidden="true">${QrewUI.getIcon('chevronRight')}</span>
+                        <span class="tree-folder-icon" aria-hidden="true">
+                          ${isTenantExpanded ? QrewUI.getIcon('folderOpen') : QrewUI.getIcon('folderClosed')}
+                        </span>
+                        <div class="tree-tenant-name-group">
+                          <span class="tree-tenant-title">${QrewUI.escapeHtml(t.name)}</span>
+                          <span class="tree-id-badge" title="Tenant Organization Identifier">${t.id}</span>
+                        </div>
+                      </div>
+
+                      <div class="tree-tenant-meta">
+                        <span class="tree-meta-item" title="Organization Account Owner">
+                          <span class="tree-meta-icon">${QrewUI.getIcon('users')}</span>
+                          <span class="tree-meta-label">Owner:</span>
+                          <strong style="color:var(--color-text-primary);">${QrewUI.escapeHtml(t.ownerName || 'Rafiqul Islam')}</strong>
+                        </span>
+                        <span class="tree-meta-divider" aria-hidden="true">•</span>
+                        <span class="tree-meta-badge" title="Total Offices">
+                          ${tenantOffices.length} office${tenantOffices.length === 1 ? '' : 's'}
+                        </span>
+                        <span class="tree-meta-divider" aria-hidden="true">•</span>
+                        <span class="tree-meta-item" title="Total Organization Members" style="color:var(--color-text-muted);">
+                          ${tenantMembers.length} member${tenantMembers.length === 1 ? '' : 's'}
+                        </span>
+                        <span class="tree-meta-divider" aria-hidden="true">•</span>
+                        <span class="tree-meta-item">
+                          ${QrewUI.statusBadge(t.status)}
+                        </span>
+                        <span class="tree-meta-divider" aria-hidden="true">•</span>
+                        <span class="tree-meta-date" title="Organization Created Date">
+                          Est. ${t.createdAt || '2026-09-12'}
+                        </span>
+                      </div>
+
+                      <div class="tree-actions-wrap" onclick="event.stopPropagation()">
+                        <button class="action-icon-btn edit-tenant-btn" data-id="${t.id}" title="Edit Organization Details" aria-label="Edit Tenant Organization">
+                          ${QrewUI.getIcon('edit')}
+                        </button>
+                        <div class="tree-action-dropdown-wrap">
+                          <button class="action-icon-btn tree-dropdown-trigger" data-dropdown="platform-tenant-menu-${t.id}" title="More Actions" aria-label="More Organization Actions">
+                            ${QrewUI.getIcon('moreHorizontal')}
+                          </button>
+                          <div class="tree-action-menu" id="platform-tenant-menu-${t.id}">
+                            <a href="#tenant/overview?id=${t.id}" class="tree-action-item">
+                              ${QrewUI.getIcon('overview')} <span>Open Tenant Workspace</span>
+                            </a>
+                            <button class="tree-action-item edit-tenant-btn" data-id="${t.id}">
+                              ${QrewUI.getIcon('edit')} <span>Edit Organization</span>
+                            </button>
+                            <button class="tree-action-item toggle-tenant-btn" data-id="${t.id}" data-status="${t.status}">
+                              ${QrewUI.getIcon('power')} <span>${t.status === 'Active' ? 'Suspend Organization' : 'Activate Organization'}</span>
+                            </button>
+                            <div class="tree-action-divider"></div>
+                            <button class="tree-action-item danger delete-tenant-btn" data-id="${t.id}" data-name="${QrewUI.escapeHtml(t.name)}">
+                              ${QrewUI.getIcon('trash')} <span>Delete Organization</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Level 3: Child Offices Under Tenant -->
+                    ${isTenantExpanded ? `
+                      <div class="tree-branch-container nested-offices-branch">
+                        ${filteredOffices.length === 0 ? `
+                          <div style="padding:14px 18px;background:var(--color-surface-white);border:1px dashed var(--color-border);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:space-between;">
+                            <span style="color:var(--color-text-muted);font-size:12.5px;">
+                              ${filter ? `No offices match "${QrewUI.escapeHtml(filter)}"` : 'No offices created yet under this organization.'}
+                            </span>
+                            <button class="btn btn-secondary btn-sm create-office-tenant-btn" data-tenant-id="${t.id}">
+                              ${QrewUI.getIcon('plus')} Add Office
+                            </button>
+                          </div>
+                        ` : filteredOffices.map(off => `
+                          <div class="tree-office-item" data-id="${off.id}">
+                            <!-- Group 1: Office Identity -->
+                            <div class="tree-office-identity">
+                              <div class="tree-office-icon-wrap" aria-hidden="true" title="Facility Branch">
+                                ${QrewUI.getIcon('building2') || QrewUI.getIcon('building')}
+                              </div>
+                              <div class="tree-office-title-wrap">
+                                <a href="#office/overview?tenantId=${t.id}&officeId=${off.id}" class="tree-office-name" title="Open Branch Facility Workspace">
+                                  ${QrewUI.escapeHtml(off.name)}
+                                </a>
+                                <span class="tree-id-badge" title="Branch Office Identifier">${off.id}</span>
+                              </div>
+                            </div>
+
+                            <!-- Group 2: Office Metadata -->
+                            <div class="tree-office-meta">
+                              <span class="tree-office-location" title="Branch Physical Location">
+                                ${QrewUI.getIcon('mapPin')}
+                                <span>${QrewUI.escapeHtml(off.location || 'Location Not Specified')}</span>
+                              </span>
+                              <span class="tree-meta-divider" aria-hidden="true">•</span>
+                              <span class="tree-office-staff-badge" title="Deployed Staff Members">
+                                ${QrewUI.getIcon('users')}
+                                <span>${off.staffCount} staff member${off.staffCount === 1 ? '' : 's'}</span>
+                              </span>
+                              <span class="tree-meta-divider" aria-hidden="true">•</span>
+                              <span class="tree-office-status">
+                                ${QrewUI.statusBadge(off.status)}
+                              </span>
+                            </div>
+
+                            <!-- Group 3: Office Actions -->
+                            <div class="tree-office-actions" onclick="event.stopPropagation()">
+                              <div class="tree-action-dropdown-wrap">
+                                <button class="action-icon-btn tree-dropdown-trigger" data-dropdown="platform-office-menu-${off.id}" title="More Office Actions" aria-label="More Office Actions">
+                                  ${QrewUI.getIcon('moreHorizontal')}
+                                </button>
+                                <div class="tree-action-menu" id="platform-office-menu-${off.id}">
+                                  <a href="#office/overview?tenantId=${t.id}&officeId=${off.id}" class="tree-action-item" title="Open Branch Hub">
+                                    ${QrewUI.getIcon('building')} <span>Open Branch Hub</span>
+                                  </a>
+                                  <a href="#office-admin/overview?tenantId=${t.id}&officeId=${off.id}" class="tree-action-item" title="Open Office Administration">
+                                    ${QrewUI.getIcon('shield')} <span>Office Admin</span>
+                                  </a>
+                                  <a href="#office-config?tenantId=${t.id}&officeId=${off.id}" class="tree-action-item" title="Configure Facility Specs, Shift Templates & Custom Fields">
+                                    ${QrewUI.getIcon('settings')} <span>Configure Facility Specs</span>
+                                  </a>
+                                  <button class="tree-action-item edit-office-btn" data-id="${off.id}">
+                                    ${QrewUI.getIcon('edit')} <span>Edit Office Details</span>
+                                  </button>
+                                  <button class="tree-action-item toggle-office-btn" data-id="${off.id}" data-status="${off.status}">
+                                    ${QrewUI.getIcon('power')} <span>${off.status === 'Active' ? 'Suspend Office' : 'Activate Office'}</span>
+                                  </button>
+                                  <div class="tree-action-divider"></div>
+                                  <button class="tree-action-item danger delete-office-btn" data-id="${off.id}" data-name="${QrewUI.escapeHtml(off.name)}" data-tenant-id="${t.id}">
+                                    ${QrewUI.getIcon('trash')} <span>Delete Office Branch</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        `).join('')}
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      // Wire Event Handlers
+      // Dropdown toggle triggers
+      treeListEl.querySelectorAll('.tree-dropdown-trigger').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const targetMenuId = btn.dataset.dropdown;
+          const targetMenu = document.getElementById(targetMenuId);
+          const wasOpen = targetMenu && targetMenu.classList.contains('show');
+          
+          document.querySelectorAll('.tree-action-menu.show').forEach(m => m.classList.remove('show'));
+          
+          if (!wasOpen && targetMenu) {
+            targetMenu.classList.add('show');
+          }
+        };
       });
-      tbody.querySelectorAll('.toggle-tenant-btn').forEach(btn => {
-        btn.onclick = () => handleToggleTenantStatus(btn.dataset.id, btn.dataset.status);
+
+      // Level 1 Root Row expansion
+      const rootRow = document.getElementById('root-tenants-row');
+      if (rootRow) {
+        rootRow.onclick = () => {
+          platformTenantTreeState.isRootExpanded = !platformTenantTreeState.isRootExpanded;
+          renderTreeNodes();
+        };
+        rootRow.onkeydown = (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            rootRow.click();
+          }
+        };
+      }
+
+      const btnRootCreate = document.getElementById('btn-root-create-tenant');
+      if (btnRootCreate) {
+        btnRootCreate.onclick = (e) => {
+          e.stopPropagation();
+          openCreateTenantModal();
+        };
+      }
+
+      // Level 2 Tenant Row expansion (click & keyboard)
+      treeListEl.querySelectorAll('.tree-tenant-row.subfolder-row').forEach(row => {
+        row.onclick = () => {
+          const tid = row.dataset.tenantId;
+          if (platformTenantTreeState.expandedTenants.has(tid)) {
+            platformTenantTreeState.expandedTenants.delete(tid);
+          } else {
+            platformTenantTreeState.expandedTenants.add(tid);
+          }
+          renderTreeNodes();
+        };
+
+        row.onkeydown = (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            row.click();
+          }
+        };
       });
-      tbody.querySelectorAll('.delete-tenant-btn').forEach(btn => {
-        btn.onclick = () => handleDeleteTenant(btn.dataset.id, btn.dataset.name);
+
+      const closeOpenMenus = () => {
+        document.querySelectorAll('.tree-action-menu.show').forEach(m => m.classList.remove('show'));
+      };
+
+      treeListEl.querySelectorAll('.edit-tenant-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          openEditTenantModal(btn.dataset.id);
+        };
+      });
+
+      treeListEl.querySelectorAll('.toggle-tenant-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          handleToggleTenantStatus(btn.dataset.id, btn.dataset.status);
+        };
+      });
+
+      treeListEl.querySelectorAll('.delete-tenant-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          handleDeleteTenant(btn.dataset.id, btn.dataset.name);
+        };
+      });
+
+      treeListEl.querySelectorAll('.edit-office-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          openEditOfficeModal(btn.dataset.id);
+        };
+      });
+
+      treeListEl.querySelectorAll('.toggle-office-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          handleToggleOfficeStatus(btn.dataset.id, btn.dataset.status);
+        };
+      });
+
+      treeListEl.querySelectorAll('.delete-office-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          handleDeleteOffice(btn.dataset.id, btn.dataset.name, btn.dataset.tenantId);
+        };
+      });
+
+      treeListEl.querySelectorAll('.create-office-tenant-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          openCreateOfficeModal(btn.dataset.tenantId);
+        };
       });
     };
 
     DOM.mainContent.innerHTML = `
-      <div class="page-header">
+      <div class="page-header" style="margin-bottom:20px;">
         <div class="page-title-group">
           <h1 class="page-title">Tenant Management</h1>
           <p class="page-subtitle">Provision, inspect, and configure organizations running on Qrew.</p>
@@ -1423,59 +1934,53 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
-      <!-- Toolbar -->
-      <div class="table-toolbar">
-        <div class="filter-group">
-          <div class="search-input-wrap">
-            <span class="search-icon">${QrewUI.getIcon('search')}</span>
-            <input type="text" class="search-input" id="tenant-search" placeholder="Search by name, owner, or ID...">
+      <div class="tree-view-wrapper">
+        <!-- Tree Toolbar -->
+        <div class="tree-toolbar">
+          <div class="tree-toolbar-left" style="display:flex;align-items:center;gap:12px;flex:1;max-width:540px;">
+            <div class="tree-search-wrap" style="flex:1;">
+              <span class="tree-search-icon">${QrewUI.getIcon('search')}</span>
+              <input type="text" class="tree-search-input" id="tenant-tree-search" placeholder="Search offices, IDs, or locations..." value="${QrewUI.escapeHtml(platformTenantTreeState.searchTerm)}">
+            </div>
+            <select class="select-filter" id="tenant-tree-status-filter" style="min-width:130px;height:34px;padding:4px 10px;font-size:12.5px;">
+              <option value="All" ${platformTenantTreeState.statusFilter === 'All' ? 'selected' : ''}>All Statuses</option>
+              <option value="Active" ${platformTenantTreeState.statusFilter === 'Active' ? 'selected' : ''}>Active</option>
+              <option value="Suspended" ${platformTenantTreeState.statusFilter === 'Suspended' ? 'selected' : ''}>Suspended</option>
+            </select>
           </div>
-          <select class="select-filter" id="tenant-status-filter">
-            <option value="All">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Suspended">Suspended</option>
-          </select>
-        </div>
-        <div style="font-size:12.5px;color:var(--color-text-muted);">
-          Showing <span id="tenant-count">${allTenants.length}</span> tenants
-        </div>
-      </div>
 
-      <!-- Table -->
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Tenant Name</th>
-              <th>Tenant ID</th>
-              <th>Owner</th>
-              <th>Offices</th>
-              <th>Members</th>
-              <th>Status</th>
-              <th>Created At</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="tenants-tbody"></tbody>
-        </table>
+          <div class="tree-toolbar-actions">
+            <span class="tree-meta-badge" id="tenants-stats-badge" style="background:var(--color-surface);color:var(--color-text-muted);border:1px solid var(--color-border);font-size:12px;padding:5px 10px;">
+              ${allTenants.length} Tenant${allTenants.length === 1 ? '' : 's'} • ${totalOfficesCount} Offices
+            </span>
+          </div>
+        </div>
+
+        <!-- Tree Nodes List -->
+        <div class="tree-root-list" id="tenants-tree-list"></div>
       </div>
     `;
 
     document.getElementById('btn-create-tenant').onclick = openCreateTenantModal;
-    const searchInput = document.getElementById('tenant-search');
-    const filterSelect = document.getElementById('tenant-status-filter');
 
-    searchInput.oninput = (e) => {
-      searchQuery = e.target.value;
-      filterAndRenderTable();
-    };
+    const searchInput = document.getElementById('tenant-tree-search');
+    const statusFilter = document.getElementById('tenant-tree-status-filter');
 
-    filterSelect.onchange = (e) => {
-      currentFilter = e.target.value;
-      filterAndRenderTable();
-    };
+    if (searchInput) {
+      searchInput.oninput = (e) => {
+        platformTenantTreeState.searchTerm = e.target.value;
+        renderTreeNodes();
+      };
+    }
 
-    filterAndRenderTable();
+    if (statusFilter) {
+      statusFilter.onchange = (e) => {
+        platformTenantTreeState.statusFilter = e.target.value;
+        renderTreeNodes();
+      };
+    }
+
+    renderTreeNodes();
   };
 
   // --- Platform: Platform Users ---
@@ -2053,9 +2558,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-toggle-tenant-header').onclick = () => handleToggleTenantStatus(tenant.id, tenant.status);
   };
 
-  // --- Tenant: Offices ---
+  // --- Tenant: Offices (Tree-View Hierarchical Explorer) ---
+  let treeState = {
+    expandedTenants: new Set(),
+    searchTerm: ''
+  };
+
   const renderTenantOffices = (tenantId) => {
-    const tenant = QrewStore.getTenantById(tenantId);
+    const tenant = QrewStore.getTenantById(tenantId) || QrewStore.getTenants()[0];
     if (!tenant) return renderTenantNotFound(tenantId);
 
     updateBreadcrumbs([
@@ -2064,13 +2574,289 @@ document.addEventListener('DOMContentLoaded', () => {
       { label: 'Offices', hash: `#tenant/offices?id=${tenant.id}` }
     ]);
 
-    const offices = QrewStore.getOfficesByTenant(tenant.id);
+    // Ensure the current active tenant is expanded by default
+    if (!treeState.expandedTenants.has(tenant.id) && treeState.expandedTenants.size === 0) {
+      treeState.expandedTenants.add(tenant.id);
+    }
+
+    const allTenants = QrewStore.getTenants();
+    const totalOfficesCount = allTenants.reduce((sum, t) => sum + (QrewStore.getOfficesByTenant(t.id) || []).length, 0);
+
+    const renderTreeNodes = () => {
+      const filter = (treeState.searchTerm || '').toLowerCase().trim();
+      const treeListEl = document.getElementById('tree-root-list');
+      if (!treeListEl) return;
+
+      treeListEl.innerHTML = allTenants.map(t => {
+        const tenantOffices = QrewStore.getOfficesByTenant(t.id) || [];
+        const tenantMembers = QrewStore.getTenantMembers(t.id) || [];
+
+        // Filter child offices if search term provided
+        const filteredOffices = filter
+          ? tenantOffices.filter(o => 
+              o.name.toLowerCase().includes(filter) || 
+              o.id.toLowerCase().includes(filter) || 
+              (o.location && o.location.toLowerCase().includes(filter))
+            )
+          : tenantOffices;
+
+        // Auto-expand if search matches offices inside this tenant
+        if (filter && filteredOffices.length > 0) {
+          treeState.expandedTenants.add(t.id);
+        }
+
+        const isExpanded = treeState.expandedTenants.has(t.id);
+
+        return `
+          <div class="tree-tenant-card" data-tenant-id="${t.id}">
+            <!-- Tenant Root Folder Row -->
+            <div class="tree-tenant-row ${isExpanded ? 'expanded' : ''}" data-tenant-id="${t.id}" role="button" tabindex="0" aria-expanded="${isExpanded ? 'true' : 'false'}" aria-label="Tenant Organization ${QrewUI.escapeHtml(t.name)}">
+              <div class="tree-tenant-left">
+                <span class="tree-chevron" aria-hidden="true">${QrewUI.getIcon('chevronRight')}</span>
+                <span class="tree-folder-icon" aria-hidden="true">
+                  ${isExpanded ? QrewUI.getIcon('folderOpen') : QrewUI.getIcon('folderClosed')}
+                </span>
+                <div class="tree-tenant-name-group">
+                  <span class="tree-tenant-title">${QrewUI.escapeHtml(t.name)}</span>
+                  <span class="tree-id-badge" title="Tenant Organization Identifier">${t.id}</span>
+                </div>
+              </div>
+
+              <div class="tree-tenant-meta">
+                <span class="tree-meta-item" title="Organization Account Owner">
+                  <span class="tree-meta-icon">${QrewUI.getIcon('users')}</span>
+                  <span class="tree-meta-label">Owner:</span>
+                  <strong style="color:var(--color-text-primary);">${QrewUI.escapeHtml(t.ownerName || 'Rafiqul Islam')}</strong>
+                </span>
+                <span class="tree-meta-divider" aria-hidden="true">•</span>
+                <span class="tree-meta-badge" title="Total Offices">
+                  ${tenantOffices.length} office${tenantOffices.length === 1 ? '' : 's'}
+                </span>
+                <span class="tree-meta-divider" aria-hidden="true">•</span>
+                <span class="tree-meta-item" title="Total Organization Members" style="color:var(--color-text-muted);">
+                  ${tenantMembers.length} member${tenantMembers.length === 1 ? '' : 's'}
+                </span>
+                <span class="tree-meta-divider" aria-hidden="true">•</span>
+                <span class="tree-meta-item">
+                  ${QrewUI.statusBadge(t.status)}
+                </span>
+                <span class="tree-meta-divider" aria-hidden="true">•</span>
+                <span class="tree-meta-date" title="Organization Created Date">
+                  Est. ${t.createdAt || '2026-09-12'}
+                </span>
+              </div>
+
+              <div class="tree-actions-wrap" onclick="event.stopPropagation()">
+                <button class="action-icon-btn edit-tenant-btn" data-id="${t.id}" title="Edit Organization Details" aria-label="Edit Tenant Organization">
+                  ${QrewUI.getIcon('edit')}
+                </button>
+                <div class="tree-action-dropdown-wrap">
+                  <button class="action-icon-btn tree-dropdown-trigger" data-dropdown="tenant-menu-${t.id}" title="More Actions" aria-label="More Organization Actions">
+                    ${QrewUI.getIcon('moreHorizontal')}
+                  </button>
+                  <div class="tree-action-menu" id="tenant-menu-${t.id}">
+                    <button class="tree-action-item edit-tenant-btn" data-id="${t.id}">
+                      ${QrewUI.getIcon('edit')} <span>Edit Organization</span>
+                    </button>
+                    <button class="tree-action-item toggle-tenant-btn" data-id="${t.id}" data-status="${t.status}">
+                      ${QrewUI.getIcon('power')} <span>${t.status === 'Active' ? 'Suspend Organization' : 'Activate Organization'}</span>
+                    </button>
+                    <div class="tree-action-divider"></div>
+                    <button class="tree-action-item danger delete-tenant-btn" data-id="${t.id}" data-name="${QrewUI.escapeHtml(t.name)}">
+                      ${QrewUI.getIcon('trash')} <span>Delete Organization</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Child Offices Tree Branch -->
+            ${isExpanded ? `
+              <div class="tree-branch-container">
+                ${filteredOffices.length === 0 ? `
+                  <div style="padding:16px 20px;background:var(--color-surface-white);border:1px dashed var(--color-border);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:space-between;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <span style="color:var(--color-text-muted);font-size:13px;">
+                        ${filter ? `No offices match "${QrewUI.escapeHtml(filter)}"` : 'No offices created yet under this organization.'}
+                      </span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm create-office-tenant-btn" data-tenant-id="${t.id}">
+                      ${QrewUI.getIcon('plus')} Add Office
+                    </button>
+                  </div>
+                ` : filteredOffices.map(off => `
+                  <div class="tree-office-item" data-id="${off.id}">
+                    <!-- Group 1: Office Identity -->
+                    <div class="tree-office-identity">
+                      <div class="tree-office-icon-wrap" aria-hidden="true" title="Facility Branch">
+                        ${QrewUI.getIcon('building2') || QrewUI.getIcon('building')}
+                      </div>
+                      <div class="tree-office-title-wrap">
+                        <a href="#office/overview?tenantId=${t.id}&officeId=${off.id}" class="tree-office-name" title="Open Branch Facility Workspace">
+                          ${QrewUI.escapeHtml(off.name)}
+                        </a>
+                        <span class="tree-id-badge" title="Branch Office Identifier">${off.id}</span>
+                      </div>
+                    </div>
+
+                    <!-- Group 2: Office Metadata -->
+                    <div class="tree-office-meta">
+                      <span class="tree-office-location" title="Branch Physical Location">
+                        ${QrewUI.getIcon('mapPin')}
+                        <span>${QrewUI.escapeHtml(off.location || 'Location Not Specified')}</span>
+                      </span>
+                      <span class="tree-meta-divider" aria-hidden="true">•</span>
+                      <span class="tree-office-staff-badge" title="Deployed Staff Members">
+                        ${QrewUI.getIcon('users')}
+                        <span>${off.staffCount} staff member${off.staffCount === 1 ? '' : 's'}</span>
+                      </span>
+                      <span class="tree-meta-divider" aria-hidden="true">•</span>
+                      <span class="tree-office-status">
+                        ${QrewUI.statusBadge(off.status)}
+                      </span>
+                    </div>
+
+                    <!-- Group 3: Office Actions -->
+                    <div class="tree-office-actions" onclick="event.stopPropagation()">
+                      <div class="tree-action-dropdown-wrap">
+                        <button class="action-icon-btn tree-dropdown-trigger" data-dropdown="office-menu-${off.id}" title="More Office Actions" aria-label="More Office Actions">
+                          ${QrewUI.getIcon('moreHorizontal')}
+                        </button>
+                        <div class="tree-action-menu" id="office-menu-${off.id}">
+                          <a href="#office/overview?tenantId=${t.id}&officeId=${off.id}" class="tree-action-item" title="Open Branch Hub">
+                            ${QrewUI.getIcon('building')} <span>Open Branch Hub</span>
+                          </a>
+                          <a href="#office-admin/overview?tenantId=${t.id}&officeId=${off.id}" class="tree-action-item" title="Open Office Administration">
+                            ${QrewUI.getIcon('shield')} <span>Office Admin</span>
+                          </a>
+                          <a href="#office-config?tenantId=${t.id}&officeId=${off.id}" class="tree-action-item" title="Configure Facility Specs, Shift Templates & Custom Fields">
+                            ${QrewUI.getIcon('settings')} <span>Configure Facility Specs</span>
+                          </a>
+                          <button class="tree-action-item edit-office-btn" data-id="${off.id}">
+                            ${QrewUI.getIcon('edit')} <span>Edit Office Details</span>
+                          </button>
+                          <button class="tree-action-item toggle-office-btn" data-id="${off.id}" data-status="${off.status}">
+                            ${QrewUI.getIcon('power')} <span>${off.status === 'Active' ? 'Suspend Office' : 'Activate Office'}</span>
+                          </button>
+                          <div class="tree-action-divider"></div>
+                          <button class="tree-action-item danger delete-office-btn" data-id="${off.id}" data-name="${QrewUI.escapeHtml(off.name)}" data-tenant-id="${t.id}">
+                            ${QrewUI.getIcon('trash')} <span>Delete Office Branch</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      // Wire Event Handlers
+      // Dropdown toggle triggers
+      treeListEl.querySelectorAll('.tree-dropdown-trigger').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const targetMenuId = btn.dataset.dropdown;
+          const targetMenu = document.getElementById(targetMenuId);
+          const wasOpen = targetMenu && targetMenu.classList.contains('show');
+          
+          // Close all open menus first
+          document.querySelectorAll('.tree-action-menu.show').forEach(m => m.classList.remove('show'));
+          
+          if (!wasOpen && targetMenu) {
+            targetMenu.classList.add('show');
+          }
+        };
+      });
+
+      // Tenant Row expansion (click & keyboard)
+      treeListEl.querySelectorAll('.tree-tenant-row').forEach(row => {
+        row.onclick = () => {
+          const tid = row.dataset.tenantId;
+          if (treeState.expandedTenants.has(tid)) {
+            treeState.expandedTenants.delete(tid);
+          } else {
+            treeState.expandedTenants.add(tid);
+          }
+          renderTreeNodes();
+        };
+
+        row.onkeydown = (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            row.click();
+          }
+        };
+      });
+
+      const closeOpenMenus = () => {
+        document.querySelectorAll('.tree-action-menu.show').forEach(m => m.classList.remove('show'));
+      };
+
+      treeListEl.querySelectorAll('.edit-tenant-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          openEditTenantModal(btn.dataset.id);
+        };
+      });
+
+      treeListEl.querySelectorAll('.toggle-tenant-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          handleToggleTenantStatus(btn.dataset.id, btn.dataset.status);
+        };
+      });
+
+      treeListEl.querySelectorAll('.delete-tenant-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          handleDeleteTenant(btn.dataset.id, btn.dataset.name);
+        };
+      });
+
+      treeListEl.querySelectorAll('.edit-office-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          openEditOfficeModal(btn.dataset.id);
+        };
+      });
+
+      treeListEl.querySelectorAll('.toggle-office-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          handleToggleOfficeStatus(btn.dataset.id, btn.dataset.status);
+        };
+      });
+
+      treeListEl.querySelectorAll('.delete-office-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          handleDeleteOffice(btn.dataset.id, btn.dataset.name, btn.dataset.tenantId || tenant.id);
+        };
+      });
+
+      treeListEl.querySelectorAll('.create-office-tenant-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          closeOpenMenus();
+          openCreateOfficeModal(btn.dataset.tenantId);
+        };
+      });
+    };
 
     DOM.mainContent.innerHTML = `
-      <div class="page-header">
+      <div class="page-header" style="margin-bottom:20px;">
         <div class="page-title-group">
           <h1 class="page-title">Branch & Facility Offices</h1>
-          <p class="page-subtitle">Offices operating under ${QrewUI.escapeHtml(tenant.name)}. Each office can have its own staff and operational roles.</p>
+          <p class="page-subtitle">Hierarchical tree view of organization facilities, offices, and operational branches.</p>
         </div>
         <div class="page-actions">
           <button class="btn btn-primary" id="btn-create-office">
@@ -2079,78 +2865,38 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Office Name</th>
-              <th>Office ID</th>
-              <th>Location</th>
-              <th>Assigned Staff</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${offices.length === 0 ? `
-              <tr>
-                <td colspan="6">
-                  ${QrewUI.emptyState({
-                    title: 'No offices created yet',
-                    description: 'This organization currently has no offices. Create the first branch to begin assigning staff.'
-                  })}
-                </td>
-              </tr>
-            ` : offices.map(off => `
-              <tr>
-                <td>
-                  <a href="#office/overview?tenantId=${tenant.id}&officeId=${off.id}" class="table-row-link">
-                    <strong>${QrewUI.escapeHtml(off.name)}</strong>
-                  </a>
-                </td>
-                <td><span class="id-badge">${off.id}</span></td>
-                <td>${QrewUI.escapeHtml(off.location)}</td>
-                <td>${off.staffCount} staff members</td>
-                <td>${QrewUI.statusBadge(off.status)}</td>
-                <td>
-                  <div class="table-actions">
-                    <a href="#office-config?tenantId=${tenant.id}&officeId=${off.id}" class="action-icon-btn" title="Configure Facility Specs & Provision Departments">
-                      ${QrewUI.getIcon('settings')}
-                    </a>
-                    <button class="action-icon-btn edit-office-btn" data-id="${off.id}" title="Edit Office Info">
-                      ${QrewUI.getIcon('edit')}
-                    </button>
-                    <button class="action-icon-btn toggle-office-btn" data-id="${off.id}" data-status="${off.status}" title="${off.status === 'Active' ? 'Suspend' : 'Activate'}">
-                      ${QrewUI.getIcon('power')}
-                    </button>
-                    <button class="action-icon-btn danger delete-office-btn" data-id="${off.id}" data-name="${QrewUI.escapeHtml(off.name)}" title="Delete Office Branch">
-                      ${QrewUI.getIcon('trash')}
-                    </button>
-                    <a href="#office/overview?tenantId=${tenant.id}&officeId=${off.id}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 7px;margin-left:4px;" title="Open Branch Hub">
-                      Branch Hub &rarr;
-                    </a>
-                    <a href="#office-admin/overview?tenantId=${tenant.id}&officeId=${off.id}" class="btn btn-primary btn-sm" style="font-size:11px;padding:3px 7px;margin-left:2px;" title="Open Office Admin">
-                      Admin &rarr;
-                    </a>
-                  </div>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+      <div class="tree-view-wrapper">
+        <!-- Tree Toolbar -->
+        <div class="tree-toolbar">
+          <div class="tree-search-wrap">
+            <span class="tree-search-icon">${QrewUI.getIcon('search')}</span>
+            <input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search offices, IDs, or locations..." value="${QrewUI.escapeHtml(treeState.searchTerm)}">
+          </div>
+
+          <div class="tree-toolbar-actions">
+            <span class="tree-meta-badge" style="background:var(--color-surface);color:var(--color-text-muted);border:1px solid var(--color-border);font-size:12px;padding:5px 10px;">
+              ${allTenants.length} Tenant${allTenants.length === 1 ? '' : 's'} • ${totalOfficesCount} Offices
+            </span>
+          </div>
+        </div>
+
+        <!-- Tree Nodes List -->
+        <div class="tree-root-list" id="tree-root-list"></div>
       </div>
     `;
 
+    renderTreeNodes();
+
+    // Toolbar Search Listener
+    const searchInput = document.getElementById('tree-search-input');
+    if (searchInput) {
+      searchInput.oninput = (e) => {
+        treeState.searchTerm = e.target.value;
+        renderTreeNodes();
+      };
+    }
+
     document.getElementById('btn-create-office').onclick = () => openCreateOfficeModal(tenant.id);
-    DOM.mainContent.querySelectorAll('.edit-office-btn').forEach(btn => {
-      btn.onclick = () => openEditOfficeModal(btn.dataset.id);
-    });
-    DOM.mainContent.querySelectorAll('.toggle-office-btn').forEach(btn => {
-      btn.onclick = () => handleToggleOfficeStatus(btn.dataset.id, btn.dataset.status);
-    });
-    DOM.mainContent.querySelectorAll('.delete-office-btn').forEach(btn => {
-      btn.onclick = () => handleDeleteOffice(btn.dataset.id, btn.dataset.name, tenant.id);
-    });
   };
 
   // --- Tenant: Members ---
@@ -5270,18 +6016,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Edit Profile Settings Modal ---
   const openEditProfileModal = () => {
     DOM.userDropdownMenu.classList.remove('show');
-    const user = QrewStore.getCurrentUser();
+    const user = getPanelUserInfo();
 
     QrewUI.openModal({
       title: 'Edit Profile Settings',
       bodyHtml: `
         <div style="display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--color-border-subtle);">
-          <div class="user-avatar" style="width:48px;height:48px;font-size:18px;font-weight:700;">
+          <div class="user-avatar" style="width:48px;height:48px;font-size:18px;font-weight:700;background-color:${user.avatarBg || 'var(--color-dark)'};">
             ${QrewUI.escapeHtml(user.avatar || user.name.charAt(0).toUpperCase())}
           </div>
           <div>
             <h3 style="font-size:16px;font-weight:600;color:var(--color-text-primary);margin:0;">${QrewUI.escapeHtml(user.name)}</h3>
-            <div style="margin-top:4px;">${QrewUI.roleBadge(user.platformRole, 'platform')}</div>
+            <div style="margin-top:4px;"><span class="badge" style="background:var(--color-surface);color:var(--color-accent);border:1px solid var(--color-border);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;">${QrewUI.escapeHtml(user.role)}</span></div>
           </div>
         </div>
 
@@ -5298,9 +6044,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px;">
             <div class="form-group">
-              <label class="form-label">Platform Role</label>
-              <input type="text" class="form-input" value="${QrewUI.escapeHtml(user.platformRole)}" disabled style="background:var(--color-surface);color:var(--color-text-muted);cursor:not-allowed;">
-              <span class="form-hint">System role locked</span>
+              <label class="form-label">Active Panel Role</label>
+              <input type="text" class="form-input" value="${QrewUI.escapeHtml(user.role)}" disabled style="background:var(--color-surface);color:var(--color-text-muted);cursor:not-allowed;">
+              <span class="form-hint">Role scoped to active panel</span>
             </div>
             <div class="form-group">
               <label class="form-label">Account Status</label>
@@ -5328,11 +6074,21 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           try {
-            QrewStore.updateCurrentUser({ name, email });
+            const ws = AppState.activeWorkspace;
+            let overrides = {};
+            try {
+              overrides = JSON.parse(localStorage.getItem('qrew_panel_user_overrides') || '{}');
+            } catch (e) {}
+            overrides[ws] = { name, email, avatar: name.charAt(0).toUpperCase() };
+            localStorage.setItem('qrew_panel_user_overrides', JSON.stringify(overrides));
+
+            if (ws === 'platform' || ws === 'super-admin') {
+              try { QrewStore.updateCurrentUser({ name, email }); } catch (e) {}
+            }
+
             syncHeaderUserProfile();
             QrewUI.closeModal();
             QrewUI.showToast('Profile updated successfully!', 'success');
-            handleRouteChange();
           } catch (err) {
             alert(err.message);
           }
@@ -5400,15 +6156,85 @@ document.addEventListener('DOMContentLoaded', () => {
   // Global Shell Event Listeners
   // ==========================================
 
+  // ==========================================
+  // React State Hook Pattern for Sidebar (Requirement 10)
+  // Provides reactive state, subscriber notifications, and persistence.
+  // ==========================================
+  function useReactSidebarState(initialState) {
+    let state = initialState;
+    const subscribers = [];
+
+    const getState = () => state;
+
+    const setState = (action) => {
+      const nextState = typeof action === 'function' ? action(state) : action;
+      if (nextState !== state) {
+        state = nextState;
+        subscribers.forEach(callback => callback(state));
+      }
+    };
+
+    const subscribe = (callback) => {
+      subscribers.push(callback);
+      return () => {
+        const idx = subscribers.indexOf(callback);
+        if (idx !== -1) subscribers.splice(idx, 1);
+      };
+    };
+
+    return [getState, setState, subscribe];
+  }
+
+  // Determine persisted preference
+  const initialSidebarCollapsed = (() => {
+    try {
+      return localStorage.getItem('qrew_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  })();
+
+  const [getSidebarCollapsed, setSidebarCollapsed, subscribeSidebar] = useReactSidebarState(initialSidebarCollapsed);
+
+  // Reactive listener updating the DOM smoothly with zero page reload
+  subscribeSidebar((collapsed) => {
+    AppState.sidebarCollapsed = collapsed;
+    if (DOM.sidebar) {
+      DOM.sidebar.classList.toggle('collapsed', collapsed);
+    }
+    const label = collapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)';
+    if (DOM.sidebarToggle) {
+      DOM.sidebarToggle.setAttribute('title', label);
+      DOM.sidebarToggle.setAttribute('aria-label', label);
+      DOM.sidebarToggle.setAttribute('data-tooltip', label);
+    }
+    try {
+      localStorage.setItem('qrew_sidebar_collapsed', String(collapsed));
+    } catch (e) {}
+  });
+
+  // Apply initial state if already collapsed
+  if (initialSidebarCollapsed) {
+    AppState.sidebarCollapsed = true;
+    if (DOM.sidebar) DOM.sidebar.classList.add('collapsed');
+    if (DOM.sidebarToggle) {
+      DOM.sidebarToggle.setAttribute('title', 'Expand sidebar (Ctrl+B)');
+      DOM.sidebarToggle.setAttribute('aria-label', 'Expand sidebar (Ctrl+B)');
+      DOM.sidebarToggle.setAttribute('data-tooltip', 'Expand sidebar (Ctrl+B)');
+    }
+  }
+
   // Sidebar Collapse / Expand Function
   const toggleSidebar = () => {
-    AppState.sidebarCollapsed = !AppState.sidebarCollapsed;
-    DOM.sidebar.classList.toggle('collapsed', AppState.sidebarCollapsed);
-    const title = AppState.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
-    if (DOM.sidebarToggle) {
-      DOM.sidebarToggle.setAttribute('title', title);
-      DOM.sidebarToggle.setAttribute('aria-label', title);
-    }
+    setSidebarCollapsed(prev => !prev);
+  };
+
+  // Expose React state hook interface globally for component/testing integration
+  window.useSidebarState = {
+    getState: getSidebarCollapsed,
+    setState: setSidebarCollapsed,
+    toggle: toggleSidebar,
+    subscribe: subscribeSidebar
   };
 
   if (DOM.sidebarToggle) {
@@ -5439,6 +6265,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const brandWrapper = document.getElementById('brand-wrapper');
   if (brandWrapper) {
     brandWrapper.onclick = navigateBrandHome;
+  }
+
+  const topbarDomainBadge = document.querySelector('.topbar-domain-badge');
+  if (topbarDomainBadge) {
+    topbarDomainBadge.title = 'Go to Qrew Landing Page';
+    topbarDomainBadge.onclick = () => navigateTo('#landing');
   }
 
   // Keyboard shortcut: Ctrl+B or Cmd+B to toggle sidebar
@@ -5501,6 +6333,7 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmText: 'Reset to Defaults',
         confirmClass: 'btn-danger',
         onConfirm: () => {
+          try { localStorage.removeItem('qrew_panel_user_overrides'); } catch (e) {}
           QrewStore.reset();
           syncHeaderUserProfile();
           QrewUI.showToast('Demo data restored to initial state.', 'success');
@@ -5514,6 +6347,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', () => {
     DOM.userDropdownMenu.classList.remove('show');
     DOM.notificationsPopover.classList.remove('show');
+    document.querySelectorAll('.tree-action-menu.show').forEach(m => m.classList.remove('show'));
+  });
+
+  // Global keydown listeners
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      DOM.userDropdownMenu.classList.remove('show');
+      DOM.notificationsPopover.classList.remove('show');
+      document.querySelectorAll('.tree-action-menu.show').forEach(m => m.classList.remove('show'));
+    }
   });
 
   // Hash Change Listener
